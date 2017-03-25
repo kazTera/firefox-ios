@@ -455,12 +455,33 @@ class TabManager: NSObject {
                     }
                 }
                 self.eraseUndoCache()
+                self.showFocusPromoToast()
             })
         }
 
         delegates.forEach { $0.get()?.tabManagerDidRemoveAllTabs(self, toast: toast) }
     }
-    
+
+    func showFocusPromoToast() {
+        var toast: FocusPromoButtonToast
+        if let bool = prefs.boolForKey("focusPromoToastSeen"), bool {
+            return
+        }
+        prefs.setBool(true, forKey: "focusPromoToastSeen")
+
+        toast = FocusPromoButtonToast(labelText: Strings.FocusPromoString, buttonText: Strings.FocusPromoButtonString, completion: { buttonPressed in
+            guard let url = NSURL(string: "https://itunes.apple.com/app/id1055677337") else {
+                return
+            }
+
+            if UIApplication.shared.canOpenURL(url as URL) && buttonPressed {
+                UIApplication.shared.openURL(url as URL)
+            }
+        })
+
+        delegates.forEach { $0.get()?.tabManagerDidRemoveAllTabs(self, toast: toast) }
+    }
+
     func undoCloseTabs() {
         guard let tempTabs = self.tempTabs, tempTabs.count > 0 else {
             return
